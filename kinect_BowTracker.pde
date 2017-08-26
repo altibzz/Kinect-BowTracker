@@ -12,6 +12,7 @@ OscMessage ELBOW_ANGLE;
 OscMessage RIGHTHAND_XYZ;
 OscMessage RIGHTHAND_ANGLE;
 OscMessage BOW_STROKE_LENGTH;
+OscMessage BOW_HEIGHT;
 OscMessage BOW_SPEED;
 
 PVector pRightHand; // store the previous location of the hand
@@ -64,6 +65,9 @@ void draw() {
       kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, rightElbow); 
       PVector rightShoulder = new PVector();
       kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER,rightShoulder); 
+      
+      PVector rightHip = new PVector();
+      kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HIP,rightHip); 
  
       float shoulderAngle = angleOf(rightElbow.x, rightElbow.y, rightShoulder.x, rightShoulder.y, 0);  
       float elbowAngle = angleOf(rightElbow.x, rightElbow.y, rightHand.x, rightHand.y, HALF_PI);     
@@ -75,6 +79,9 @@ void draw() {
       float bowStrokeLength = diff.mag();
       bowStrokeLength = constrain(bowStrokeLength, 150, 600);
       bowStrokeLength = map(bowStrokeLength, 150, 600, 0, 1);
+      
+      PVector diff2 = PVector.sub(rightElbow, rightHip);
+      float bowHeight = diff2.mag();
       
       // calculate the bow speed    
       if (pRightHand != null) {
@@ -95,6 +102,8 @@ void draw() {
       RIGHTHAND_ANGLE.add(rightHandAngle);
       BOW_STROKE_LENGTH = new OscMessage("/kinect/bowStrokeLength");
       BOW_STROKE_LENGTH.add(bowStrokeLength);
+      BOW_HEIGHT = new OscMessage("/kinect/bowHeight");
+      BOW_HEIGHT.add(bowHeight);
       BOW_SPEED = new OscMessage("/kinect/bowSpeed");
       BOW_SPEED.add(bowSpeed);  
       RIGHTHAND_XYZ = new OscMessage("/kinect/rightHandXYZ");
@@ -106,6 +115,7 @@ void draw() {
       osc.send(ELBOW_ANGLE, addr);
       osc.send(RIGHTHAND_ANGLE, addr);
       osc.send(BOW_STROKE_LENGTH, addr);
+      osc.send(BOW_HEIGHT, addr);
       osc.send(BOW_SPEED, addr);
       osc.send(RIGHTHAND_XYZ, addr);
       
@@ -117,8 +127,9 @@ void draw() {
       text("/kinect/shoulderAngle "   + int(shoulderAngle), 8, 30); 
       text("/kinect/elbowAngle "      + int(elbowAngle), 8, 45); 
       text("/kinect/rightHandAngle "  + int(rightHandAngle), 8, 60);  
-      text("/kinect/bowStrokeLength "  + bowStrokeLength, 8, 75);
+      text("/kinect/bowStrokeLength " + bowStrokeLength, 8, 75);
       text("/kinect/bowSpeed "        + int(bowSpeed), 8, 90); 
+      text("/kinect/bowHeight "       + int(bowHeight), 8, 105); 
     }
   }
 }
@@ -141,12 +152,14 @@ void drawSkel(int userId) {
   stroke(#3127CB);
   strokeWeight(2);
   kinect.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HAND, SimpleOpenNI.SKEL_LEFT_SHOULDER);               
+  kinect.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HAND, SimpleOpenNI.SKEL_RIGHT_HIP);
   
   // Draw points at each of the arm's joints. 
   drawJointAngle(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
   drawJointAngle(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER);
   drawJointAngle(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW);
   drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_HAND);
+  drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_HIP);
 
 
 }
